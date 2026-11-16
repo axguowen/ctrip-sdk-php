@@ -5,10 +5,7 @@ namespace com\trip\tourop\api;
 use com\trip\tourop\util\Constants;
 
 class TouropRequest {
-    /**
-     * @var mixed
-     */
-    protected mixed $bizModel;
+    protected $bizModel;
 
     /**
      * @var string|null
