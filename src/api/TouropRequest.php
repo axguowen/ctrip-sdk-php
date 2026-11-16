@@ -8,7 +8,7 @@ class TouropRequest {
     /**
      * @var mixed
      */
-    protected mixed $bizModel;
+    protected $bizModel;
 
     /**
      * @var string|null
