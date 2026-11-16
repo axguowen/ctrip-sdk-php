@@ -38,7 +38,28 @@ abstract class TouropAgent {
      */
     protected function doSync(TouropRequest $request): TouropResponse {
         $start = microtime(true) * 1000;
-        $modelJson = json_encode($request->getBizModel());
+//        $modelJson = json_encode($request->getBizModel());
+        // 反射获取私有属性
+        $bizModel = $request->getBizModel();
+        $data = [];
+        if (is_object($bizModel)) {
+            $reflectionClass = new \ReflectionClass($bizModel);
+            $properties = $reflectionClass->getProperties();
+            foreach ($properties as $property) {
+                $property->setAccessible(true);
+                if (!$property->isInitialized($bizModel)) {
+                    continue;
+                }
+                $value = $property->getValue($bizModel);
+                if ($value instanceof \Brick\Math\BigDecimal) {
+                    $value = (string)$value;
+                }
+                $data[$property->getName()] = $value;
+            }
+        } else {
+            $data = $bizModel;
+        }
+        $modelJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $httpBody = null;
         $rsp = null;
