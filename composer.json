@@ -1,0 +1,32 @@
+{
+    "name": "axguowen/ctrip-sdk-php",
+    "description": "Ctrip Software Development Kit for PHP",
+    "keywords": [
+        "ctrip",
+        "trip",
+        "sdk",
+        "php"
+    ],      
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "axguowen",
+            "email": "axguowen@qq.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4.0",
+        "monolog/monolog": "^2.11",
+        "brick/math": "^0.10.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "com\\trip\\tourop\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "com\\trip\\tests\\": "tests"
+        }
+    }
+}
