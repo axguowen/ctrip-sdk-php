@@ -33,33 +33,45 @@ abstract class TouropAgent {
         $this->aes = new AES($aesKey, $aesVector);
     }
 
+    private function objectToArray($obj)
+    {
+        if (is_object($obj)) {
+            if ($obj instanceof \Brick\Math\BigDecimal) {
+                return (string) $obj;
+            }
+            $reflectionClass = new \ReflectionClass($obj);
+            $properties = $reflectionClass->getProperties();
+            $data = [];
+            foreach ($properties as $property) {
+                if ($property->isStatic()) continue;
+                $property->setAccessible(true);
+                if (method_exists($property, 'isInitialized') && !$property->isInitialized($obj)) {
+                    continue;
+                }
+                $data[$property->getName()] = $this->objectToArray($property->getValue($obj));
+            }
+            return $data;
+        } elseif (is_array($obj)) {
+            $arr = [];
+            foreach ($obj as $k => $v) {
+                $arr[$k] = $this->objectToArray($v);
+            }
+            return $arr;
+        }
+        return $obj;
+    }
+
     /**
      * @throws ApiException
      */
     protected function doSync(TouropRequest $request): TouropResponse {
         $start = microtime(true) * 1000;
 //        $modelJson = json_encode($request->getBizModel());
-        // 反射获取私有属性
+
         $bizModel = $request->getBizModel();
-        $data = [];
-        if (is_object($bizModel)) {
-            $reflectionClass = new \ReflectionClass($bizModel);
-            $properties = $reflectionClass->getProperties();
-            foreach ($properties as $property) {
-                $property->setAccessible(true);
-                if (!$property->isInitialized($bizModel)) {
-                    continue;
-                }
-                $value = $property->getValue($bizModel);
-                if ($value instanceof \Brick\Math\BigDecimal) {
-                    $value = (string)$value;
-                }
-                $data[$property->getName()] = $value;
-            }
-        } else {
-            $data = $bizModel;
-        }
-        $modelJson = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        // 递归将对象转为数组
+        $modelData = $this->objectToArray($bizModel);
+        $modelJson = json_encode($modelData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $httpBody = null;
         $rsp = null;
