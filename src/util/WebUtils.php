@@ -47,6 +47,7 @@ class WebUtils {
 
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_POST, $method === Constants::METHOD_POST);
 
@@ -102,18 +103,24 @@ class WebUtils {
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
 
         if ($response === false) {
             throw new \Exception('cURL error: ' . curl_error($ch));
         }
 
+        // 提取响应头和响应体
+        $headers = substr($response, 0, $headerSize);
+        $body = substr($response, $headerSize);
+
+        // 如果切出来的body为空，说明headerSize异常，直接用整个response作为body
+        if (empty($body) && !empty($response)) {
+            $body = $response;
+        }
+
         $charset = self::getResponseCharset($contentType);
 
         if ($httpCode < 400) {
-            $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-            $headers = substr($response, 0, $headerSize);
-            $body = substr($response, $headerSize);
-
             if (preg_match('/Content-Encoding:\s*(.*?)(?:\r?\n|$)/i', $headers, $matches)) {
                 $contentEncoding = trim($matches[1]);
                 if (strcasecmp($contentEncoding, Constants::CONTENT_ENCODING_GZIP) === 0) {
