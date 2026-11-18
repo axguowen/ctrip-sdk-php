@@ -128,7 +128,7 @@ abstract class TouropAgent {
             TouropLogger::write($this->accountId, $this->sdkVersion, $request->getServiceName(), $request->getEndPoint(), $modelJson, (microtime(true) * 1000) - $start, $e->getMessage());
             throw new ApiException($e);
         }
-
+        \think\facade\Log::info($rsp);
         $response = $this->parseResponse($rsp);
         if (!$response->isSuccess()) {
             TouropLogger::write($this->accountId, $this->sdkVersion, $request->getServiceName(), $request->getEndPoint(), $modelJson, (microtime(true) * 1000) - $start, json_encode($response));
